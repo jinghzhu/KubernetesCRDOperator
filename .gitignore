@@ -49,7 +49,6 @@ _deps
 *.out
 
 ### Go Patch ###
-/vendor/
 /Godeps/
 
 ### Linux ###

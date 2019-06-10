@@ -83,7 +83,8 @@ func (c *Operator) processItem(newEvent events.Event) error {
 		// Only care state change event.
 		if old.Status.State != new.Status.State {
 			fmt.Printf(
-				"Processing Jinghzhu instance in update case from %s to %s\n",
+				"Processing Jinghzhu instance %s in update case from %s to %s\n",
+				instanceName,
 				old.Status.State,
 				new.Status.State,
 			)

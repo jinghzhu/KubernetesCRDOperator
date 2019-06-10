@@ -8,12 +8,13 @@ import (
 
 	"github.com/jinghzhu/KubernetesCRDOperator/pkg/operator"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func main() {
 	fmt.Println("Init CRD Operator...")
 	// Use kubeconfig to create client config.
-	clientConfig, err := config.GetRESTClientConfig("", os.Getenv("KUBECONFIG"))
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
 	if err != nil {
 		panic(err)
 	}
@@ -25,8 +26,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	operator := operator.New(kubeClient, crdClientset)
-	
+	operator := operator.New("crd-ns", kubeClient, crdClientset)
+
 	go operator.Run(2)
 
 	ch := make(chan bool, 1)

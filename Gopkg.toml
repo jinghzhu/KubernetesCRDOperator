@@ -36,7 +36,3 @@ ignored = ["k8s.io/client-go/pkg/api/v1"]
 [[constraint]]
   version = "kubernetes-1.9.6"
   name = "k8s.io/apimachinery"
-
-[[constraint]]
-  version = "kubernetes-1.9.6"
-  name = "k8s.io/api"

@@ -19,7 +19,7 @@ func (c *Operator) Run(workerNum int) error {
 	defer utilruntime.HandleCrash()
 	defer c.queue.ShutDown() // Make sure work queue is shutdown which will trigger workers to end.
 
-	fmt.Println("Ready to start CRD Operator")
+	fmt.Println("Ready to start CRD Operator...")
 	go c.informer.Run(c.GetContext().Done())
 
 	// Wait for the caches to synchronize before starting workers.
@@ -31,21 +31,22 @@ func (c *Operator) Run(workerNum int) error {
 
 		return err
 	}
-	fmt.Println("CRD Operator is synced and ready")
+	fmt.Println("CRD Operator is synced and ready...")
 
 	fmt.Println("Ready to start CRD Operator workers...")
 	for i := 0; i < workerNum; i++ {
 		// runWorker will loop until some error happens. wait.Until will rekick the worker after one second.
 		go wait.Until(c.runWorker, time.Second, c.GetContext().Done())
 	}
-	fmt.Println("All workers are started")
+	fmt.Println("All workers are started...")
 	<-c.GetContext().Done()
-	fmt.Println("Shutting down all workers")
+	fmt.Println("Shutting down all workers...")
 
 	return c.GetContext().Err()
 }
 
 func (c *Operator) onAdd(obj interface{}) {
+	fmt.Println("Find an onAdd event")
 	instance := obj.(*jinghzhuv1.Jinghzhu).DeepCopy()
 	var newEvent events.Event
 	var err error
@@ -54,12 +55,14 @@ func (c *Operator) onAdd(obj interface{}) {
 	newEvent.NewJinghzhu = instance
 	if err == nil {
 		c.queue.Add(newEvent)
+		fmt.Println(newEvent.String())
 	} else {
 		fmt.Printf("Error in getting event in onAdd: %+v\n", err)
 	}
 }
 
 func (c *Operator) onUpdate(oldObj, newObj interface{}) {
+	fmt.Println("Find an onUpdate event")
 	old := oldObj.(*jinghzhuv1.Jinghzhu).DeepCopy()
 	new := newObj.(*jinghzhuv1.Jinghzhu).DeepCopy()
 	var newEvent events.Event
@@ -70,12 +73,14 @@ func (c *Operator) onUpdate(oldObj, newObj interface{}) {
 	newEvent.NewJinghzhu = new
 	if err == nil {
 		c.queue.Add(newEvent)
+		fmt.Println(newEvent.String())
 	} else {
 		fmt.Printf("Error in getting event in onUpdate: %+v\n", err)
 	}
 }
 
 func (c *Operator) onDelete(obj interface{}) {
+	fmt.Println("Find an onDelete event")
 	instance := obj.(*jinghzhuv1.Jinghzhu).DeepCopy()
 	var newEvent events.Event
 	var err error
@@ -84,6 +89,7 @@ func (c *Operator) onDelete(obj interface{}) {
 	newEvent.NewJinghzhu = instance
 	if err == nil {
 		c.queue.Add(newEvent)
+		fmt.Println(newEvent.String())
 	} else {
 		fmt.Printf("Error in getting event in onDelete: %+v\n", err)
 	}

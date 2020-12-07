@@ -22,7 +22,7 @@ func NewEvent() *Event {
 
 func (e *Event) String() string {
 	return fmt.Sprintf(
-		"Event: key = %s, eventType = %s, namespace = %s, oldJinghzhu = %+v, newJinghzhu= %+v",
+		"\tkey = %s\n\teventType = %s\n\tnamespace = %s\n\toldJinghzhu = %+v\n\tnewJinghzhu= %+v",
 		e.Key,
 		e.EventType,
 		e.Namespace,

@@ -74,7 +74,8 @@ func (c *Operator) processItem(newEvent events.Event) error {
 	switch newEvent.EventType {
 	case events.EventAdd:
 		instanceName := newEvent.NewJinghzhu.GetName()
-		fmt.Printf("Processing Jinghzhu instance %s in created case\n", instanceName)
+		fmt.Printf("Ready to process Jinghzhu instance %s in created case\n", instanceName)
+		fmt.Printf("Finish processing Jinghzhu instance %s in created case\n", instanceName)
 
 		return nil
 	case events.EventUpdate:
@@ -83,7 +84,13 @@ func (c *Operator) processItem(newEvent events.Event) error {
 		// Only care state change event.
 		if old.Status.State != new.Status.State {
 			fmt.Printf(
-				"Processing Jinghzhu instance %s in update case from %s to %s\n",
+				"Ready to process Jinghzhu instance %s in update case from %s to %s\n",
+				instanceName,
+				old.Status.State,
+				new.Status.State,
+			)
+			fmt.Printf(
+				"Finish processing Jinghzhu instance %s in update case from %s to %s\n",
 				instanceName,
 				old.Status.State,
 				new.Status.State,
@@ -92,7 +99,8 @@ func (c *Operator) processItem(newEvent events.Event) error {
 
 		return nil
 	case events.EventDelete:
-		fmt.Printf("Processing Jinghzhu instance %s in delete case\n", newEvent.Key)
+		fmt.Printf("Ready to process Jinghzhu instance %s in delete case\n", newEvent.Key)
+		fmt.Printf("Finish processing Jinghzhu instance %s in delete case\n", newEvent.Key)
 
 		return nil
 	default:

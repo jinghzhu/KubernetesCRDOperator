@@ -27,15 +27,17 @@ type Operator struct {
 	// performing it as soon as a change happens. This means we can ensure we only process a fixed
 	// amount of resources at a time, and makes it easy to ensure we are never processing the same
 	// item simultaneously in two different workers.
-	queue    workqueue.RateLimitingInterface
-	informer cache.SharedIndexInformer
-	context  context.Context
+	queue        workqueue.RateLimitingInterface
+	informer     cache.SharedIndexInformer
+	context      context.Context
+	crdNamespace string
+	podNamespace string
 }
 
-// New creates the CRD Operator. The parameter namespace is where this Operator will run.
-func New(namespace string, kubeClient kubernetes.Interface, jinghzhuV1Client jinghzhuv1clientset.Interface) *Operator {
+// New creates the CRD Operator. The parameter nsOp is the namespace where this Operator will run.
+func New(nsOp, nsCRD, nsPod string, kubeClient kubernetes.Interface, jinghzhuV1Client jinghzhuv1clientset.Interface) *Operator {
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	lw := cache.NewListWatchFromClient(jinghzhuV1Client.JinghzhuV1().RESTClient(), jinghzhuv1.Plural, namespace, fields.Everything())
+	lw := cache.NewListWatchFromClient(jinghzhuV1Client.JinghzhuV1().RESTClient(), jinghzhuv1.Plural, nsOp, fields.Everything())
 	// Use SharedIndexInformer instead of SharedInformer because it allows Operator to maintain indexes
 	// across all objects in the cache.
 	informer := cache.NewSharedIndexInformer(
@@ -52,6 +54,8 @@ func New(namespace string, kubeClient kubernetes.Interface, jinghzhuV1Client jin
 		jinghzhuV1Clientset: jinghzhuV1Client,
 		queue:               queue,
 		informer:            informer,
+		crdNamespace:        nsCRD,
+		podNamespace:        nsPod,
 	}
 	// Events in the Workqueue are represented by their keys which are constructed in the format of
 	// crd_instance_namespace/crd_instance_name. In the case of Pod deletion, must check for the DeletedFinalStateUnknown
@@ -65,6 +69,16 @@ func New(namespace string, kubeClient kubernetes.Interface, jinghzhuV1Client jin
 	})
 
 	return c
+}
+
+// GetCRDNamespace returns the namespace where Operator watchs the CRs.
+func (c *Operator) GetCRDNamespace() string {
+	return c.crdNamespace
+}
+
+// GetPodNamespace returns the namespace where Operator process the worker Pods.
+func (c *Operator) GetPodNamespace() string {
+	return c.podNamespace
 }
 
 // HasSynced is required for the cache.Controller interface.

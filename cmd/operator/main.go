@@ -29,7 +29,7 @@ func main() {
 		panic(err)
 	}
 	nsCRD := cfg.GetCRDNamespace()
-	operator := operator.New(nsCRD, nsCRD, cfg.GetPodNamespace(), kubeClient, crdClientset)
+	operator := operator.New(types.GetDefaultCtx(), nsCRD, nsCRD, cfg.GetPodNamespace(), kubeClient, crdClientset)
 
 	go operator.Run(types.WorkerNum)
 

@@ -3,7 +3,6 @@ package operator
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -35,7 +34,7 @@ type Operator struct {
 }
 
 // New creates the CRD Operator. The parameter nsOp is the namespace where this Operator will run.
-func New(nsOp, nsCRD, nsPod string, kubeClient kubernetes.Interface, jinghzhuV1Client jinghzhuv1clientset.Interface) *Operator {
+func New(ctx context.Context, nsOp, nsCRD, nsPod string, kubeClient kubernetes.Interface, jinghzhuV1Client jinghzhuv1clientset.Interface) *Operator {
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 	lw := cache.NewListWatchFromClient(jinghzhuV1Client.JinghzhuV1().RESTClient(), jinghzhuv1.Plural, nsOp, fields.Everything())
 	// Use SharedIndexInformer instead of SharedInformer because it allows Operator to maintain indexes
@@ -46,8 +45,6 @@ func New(nsOp, nsCRD, nsPod string, kubeClient kubernetes.Interface, jinghzhuV1C
 		0, //Skip resync
 		cache.Indexers{},
 	)
-	id, _ := uuid.NewRandom()
-	ctx := context.WithValue(context.Background(), "sample-id", id)
 	c := &Operator{
 		context:             ctx,
 		kubeClientset:       kubeClient,

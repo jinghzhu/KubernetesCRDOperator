@@ -171,8 +171,9 @@ github.com/imdario/mergo v0.3.5/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJ
 github.com/imdario/mergo v0.3.11 h1:3tnifQM4i+fbajXKBHXWEH+KvNHqojZ778UH75j3bGA=
 github.com/imdario/mergo v0.3.11/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
+github.com/jinghzhu/KubernetesCRD v0.0.0-20201207050604-661a452a0420 h1:msC01Xs3EIYq6hOkuHKqc100qYqmaeywUAA+brV3UhA=
+github.com/jinghzhu/KubernetesCRD v0.0.0-20201207050604-661a452a0420/go.mod h1:vON6euXPqEUJuqFmRvfjpRJAmH2ghFBjATYA9I/Dm6k=
 github.com/jinghzhu/KubernetesCRD v0.0.0-20201207050843-edae9e6a8d58 h1:0muOnpk+kR5ogu6iZEaxW2Y3SwVzKQDPfIzmyhURpkc=
-github.com/jinghzhu/KubernetesCRD v0.0.0-20201207050843-edae9e6a8d58/go.mod h1:vON6euXPqEUJuqFmRvfjpRJAmH2ghFBjATYA9I/Dm6k=
 github.com/jinghzhu/goutils v0.0.0-20190928081314-4579c699c136 h1:M6JQ/LmoqOCESw0GVNu/cm5RDTWOcEFv/a9i3xmGJug=
 github.com/jinghzhu/goutils v0.0.0-20190928081314-4579c699c136/go.mod h1:kvsjFWo7yzCYRsANjBPzZ8vPU03gBeVt3L+zHd4He5U=
 github.com/jinghzhu/kutils v0.0.0-20201206015721-1b9529ca590a h1:wwhHwMzuqOHeSTnT9UK6p7osxzKGyUIwGONG4xnuotE=

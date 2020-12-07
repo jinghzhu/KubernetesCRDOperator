@@ -31,7 +31,7 @@ func GetDefaultPodSpec() (*corev1.Pod, error) {
 	cfg := config.GetConfig()
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "crd-worker-",
+			GenerateName: "jinghzhu-worker-",
 			Namespace:    cfg.GetPodNamespace(),
 			Labels:       make(map[string]string),
 		},
@@ -58,7 +58,7 @@ func GetDefaultPodSpec() (*corev1.Pod, error) {
 	container := corev1.Container{
 		Image:           "ubuntu:20.10",
 		Command:         []string{"sleep", "60000000"},
-		Name:            "crd-worker-container",
+		Name:            "jinghzhu-worker-container",
 		ImagePullPolicy: "IfNotPresent",
 		Resources: corev1.ResourceRequirements{
 			Limits:   kubeResource,

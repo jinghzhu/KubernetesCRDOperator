@@ -10,7 +10,7 @@ const (
 	// DefaultCRDNamespace is the default namespace where the CRD Operator will process CRs.
 	DefaultCRDNamespace string = "crd"
 	// DefaultKubeconfigPath is the default local path of kubeconfig file.
-	DefaultKubeconfigPath string = "/.kube/config"
+	DefaultKubeconfigPath string = "/home/jinghzhu/.kube/config"
 )
 
 type Config struct {

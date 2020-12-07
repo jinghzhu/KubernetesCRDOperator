@@ -12,7 +12,7 @@ func initConfig() {
 	if config.podNamespace == "" {
 		config.podNamespace = DefaultPodNamespace
 	}
-	config.crdNamespace = os.Getenv("CO_CRD_DNAMESPACE")
+	config.crdNamespace = os.Getenv("CO_CRD_NAMESPACE")
 	if config.crdNamespace == "" {
 		config.crdNamespace = DefaultCRDNamespace
 	}

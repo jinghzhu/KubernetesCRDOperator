@@ -120,17 +120,16 @@ func reconcile(event events.Event) error {
 		return err
 	}
 	defaultPodSpec, err := types.GetDefaultPodSpec()
+	if err != nil {
+		fmt.Printf("Fail to get default Pod spec in reconcile: %+v\n", err)
+
+		return err
+	}
 	defaultPodSpec.Labels["crd"] = crdName
 
 	if new.Spec.Desired > new.Spec.Current {
 		delta := new.Spec.Desired - new.Spec.Current
-		pods := make([]string, 0)
 
-		if err != nil {
-			fmt.Printf("Fail to get default Pod spec in reconcile: %+v\n", err)
-
-			return err
-		}
 		for i := 0; i < delta; i++ {
 			pod, err := podClient.CreatePodWithRetry(defaultPodSpec, podNamespace, metav1.CreateOptions{})
 			if err != nil {
@@ -138,15 +137,15 @@ func reconcile(event events.Event) error {
 
 				return err
 			}
-			pods = append(pods, pod.GetName())
+			new.Spec.PodList = append(new.Spec.PodList, pod.GetName())
 		}
 		if new.Status.State == crdtypes.StatePending {
 			new.Status.State = crdtypes.StateRunning
 			new.Status.Message = "Start to run replica set"
 		} else {
-			new.Status.Message = "Scaling out"
+			new.Status.Message = "Scaling Out"
 		}
-		new.Spec.PodList = pods
+		new.Spec.Current = new.Spec.Desired
 	}
 
 	if new.Spec.Desired < new.Spec.Current {
@@ -160,22 +159,14 @@ func reconcile(event events.Event) error {
 			}
 		}
 		new.Spec.PodList = new.Spec.PodList[delta:]
-		new.Status.Message = "Scaling in"
+		new.Status.Message = "Scaling In"
+		new.Spec.Current = new.Spec.Desired
 	}
 
-	new.Spec.Current = len(new.Spec.PodList)
-	_, err = crdClient.PatchStatus(crdName, &new.Status)
+	_, err = crdClient.PatchSpecAndStatus(crdName, &new.Spec, &new.Status)
 	if err != nil {
-		fmt.Printf("Fail to patch CRD status in reconcile: %+v\n", err)
-
-		return err
-	}
-	_, err = crdClient.PatchSpec(crdName, &new.Spec)
-	if err != nil {
-		fmt.Printf("Fail to patch CRD spec in reconcile: %+v\n", err)
-
-		return err
+		fmt.Printf("Fail to patch CRD status and spec in reconcile: %+v\n", err)
 	}
 
-	return nil
+	return err
 }

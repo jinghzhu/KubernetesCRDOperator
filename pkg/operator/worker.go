@@ -22,7 +22,7 @@ func (c *Operator) runWorker() {
 
 // processNextWorkItem deals with one key off the queue. Return false when it's time to quit.
 func (c *Operator) processNextItem() bool {
-	// Wait until there is a new item in the working queue.
+	// Wait for an event or signal to quit.
 	newEvent, quit := c.queue.Get()
 	if quit {
 		fmt.Println("Return false in processNextItem")

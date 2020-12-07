@@ -3,8 +3,14 @@ package operator
 import (
 	"fmt"
 
+	"github.com/jinghzhu/KubernetesCRDOperator/pkg/client"
+	"github.com/jinghzhu/KubernetesCRDOperator/pkg/config"
 	"github.com/jinghzhu/KubernetesCRDOperator/pkg/events"
+	"github.com/jinghzhu/KubernetesCRDOperator/pkg/types"
 
+	jinghzhuv1client "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/client"
+	crdtypes "github.com/jinghzhu/KubernetesCRD/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 
@@ -73,38 +79,102 @@ func (c *Operator) processItem(newEvent events.Event) error {
 	// Here to add event based action in future if needed.
 	switch newEvent.EventType {
 	case events.EventAdd:
-		instanceName := newEvent.NewJinghzhu.GetName()
-		fmt.Printf("Ready to process Jinghzhu instance %s in created case\n", instanceName)
-		fmt.Printf("Finish processing Jinghzhu instance %s in created case\n", instanceName)
+		fmt.Printf("Ready to reconcile %s event for %s\n", newEvent.EventType, newEvent.NewJinghzhu.String())
+		err = reconcile(newEvent)
+		fmt.Printf("Finish reconciling %s event for %s\n", newEvent.EventType, newEvent.NewJinghzhu.String())
 
-		return nil
+		return err
 	case events.EventUpdate:
-		old, new := newEvent.OldJinghzhu, newEvent.NewJinghzhu
-		instanceName := new.GetName()
-		// Only care state change event.
-		if old.Status.State != new.Status.State {
-			fmt.Printf(
-				"Ready to process Jinghzhu instance %s in update case from %s to %s\n",
-				instanceName,
-				old.Status.State,
-				new.Status.State,
-			)
-			fmt.Printf(
-				"Finish processing Jinghzhu instance %s in update case from %s to %s\n",
-				instanceName,
-				old.Status.State,
-				new.Status.State,
-			)
-		}
+		fmt.Printf("Ready to reconcile %s event for %s\n", newEvent.EventType, newEvent.NewJinghzhu.String())
+		err = reconcile(newEvent)
+		fmt.Printf("Finish reconciling %s event for %s\n", newEvent.EventType, newEvent.NewJinghzhu.String())
 
-		return nil
+		return err
 	case events.EventDelete:
-		fmt.Printf("Ready to process Jinghzhu instance %s in delete case\n", newEvent.Key)
-		fmt.Printf("Finish processing Jinghzhu instance %s in delete case\n", newEvent.Key)
+		fmt.Printf("Ready to reconcile %s event for %s\n", newEvent.EventType, newEvent.NewJinghzhu.String())
+		err = reconcile(newEvent)
+		fmt.Printf("Finish reconciling %s event for %s\n", newEvent.EventType, newEvent.NewJinghzhu.String())
 
-		return nil
+		return err
 	default:
 		fmt.Printf("No case match Jinghzhu instance %s\n", newEvent.String())
+	}
+
+	return nil
+}
+
+func reconcile(event events.Event) error {
+	new := event.NewJinghzhu
+	cfg := config.GetConfig()
+	crdName, crdNamespace, podNamespace := new.GetName(), new.GetNamespace(), cfg.GetPodNamespace()
+
+	if new.Spec.Desired == new.Spec.Current {
+		fmt.Printf("No need to reconcile %s\n", crdName)
+
+		return nil
+	}
+
+	podClient := client.GetDefaultPodClient()
+	crdClient, err := jinghzhuv1client.NewClient(types.GetDefaultCtx(), cfg.GetKubeconfigPath(), crdNamespace)
+	if err != nil {
+		return err
+	}
+	defaultPodSpec, err := types.GetDefaultPodSpec()
+	defaultPodSpec.Labels["crd"] = crdName
+
+	if new.Spec.Desired > new.Spec.Current {
+		delta := new.Spec.Desired - new.Spec.Current
+		pods := make([]string, 0)
+
+		if err != nil {
+			fmt.Printf("Fail to get default Pod spec in reconcile: %+v\n", err)
+
+			return err
+		}
+		for i := 0; i < delta; i++ {
+			pod, err := podClient.CreatePodWithRetry(defaultPodSpec, podNamespace, metav1.CreateOptions{})
+			if err != nil {
+				fmt.Printf("Fail to create Pod in reconcile: %+v\n", err)
+
+				return err
+			}
+			pods = append(pods, pod.GetName())
+		}
+		if new.Status.State == crdtypes.StatePending {
+			new.Status.State = crdtypes.StateRunning
+			new.Status.Message = "Start to run replica set"
+		} else {
+			new.Status.Message = "Scaling out"
+		}
+		new.Spec.PodList = pods
+	}
+
+	if new.Spec.Desired < new.Spec.Current {
+		delta := new.Spec.Current - new.Spec.Desired
+		for i := 0; i < delta; i++ {
+			err = podClient.DeletePod(podNamespace, new.Spec.PodList[i], metav1.DeleteOptions{})
+			if err != nil {
+				fmt.Printf("Fail to delete Pod %s in reconcile: %+v\n", new.Spec.PodList[i], err)
+
+				return err
+			}
+		}
+		new.Spec.PodList = new.Spec.PodList[delta:]
+		new.Status.Message = "Scaling in"
+	}
+
+	new.Spec.Current = len(new.Spec.PodList)
+	_, err = crdClient.PatchStatus(crdName, &new.Status)
+	if err != nil {
+		fmt.Printf("Fail to patch CRD status in reconcile: %+v\n", err)
+
+		return err
+	}
+	_, err = crdClient.PatchSpec(crdName, &new.Spec)
+	if err != nil {
+		fmt.Printf("Fail to patch CRD spec in reconcile: %+v\n", err)
+
+		return err
 	}
 
 	return nil

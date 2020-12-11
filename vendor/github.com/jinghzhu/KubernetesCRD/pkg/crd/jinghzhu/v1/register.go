@@ -1,6 +1,7 @@
 package v1
 
 import (
+	crdjinghzhu "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -8,23 +9,24 @@ import (
 )
 
 const (
-	// GroupName is the group name used in this package.
-	GroupName string = "jinghzhu.com"
-	Kind      string = "Jinghzhu"
+	// Kind is normally the CamelCased singular type. The resource manifest uses this.
+	Kind string = "Jinghzhu"
 	// GroupVersion is the version.
 	GroupVersion string = "v1"
-	// Plural is the Plural for Jinghzhu.
+	// Plural is the plural name used in /apis/<group>/<version>/<plural>
 	Plural string = "jinghzhus"
-	// Singular is the singular for Jinghzhu.
+	// Singular is used as an alias on kubectl for display.
 	Singular string = "jinghzhu"
 	// CRDName is the CRD name for Jinghzhu.
-	CRDName string = Plural + "." + GroupName
+	CRDName string = Plural + "." + crdjinghzhu.GroupName
+	// ShortName is the short alias for the CRD.
+	ShortName string = "jh"
 )
 
 var (
 	// SchemeGroupVersion is the group version used to register these objects.
 	SchemeGroupVersion = schema.GroupVersion{
-		Group:   GroupName,
+		Group:   crdjinghzhu.GroupName,
 		Version: GroupVersion,
 	}
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)

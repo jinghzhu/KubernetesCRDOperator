@@ -2,19 +2,21 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	jinghzhuv1clientset "github.com/jinghzhu/KubernetesCRD/pkg/crd/jinghzhu/v1/apis/clientset/versioned"
 
+	"github.com/jinghzhu/KubernetesCRDOperator/pkg/config"
 	"github.com/jinghzhu/KubernetesCRDOperator/pkg/operator"
+	"github.com/jinghzhu/KubernetesCRDOperator/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 func main() {
 	fmt.Println("Init CRD Operator...")
+	cfg := config.GetConfig()
 	// Use kubeconfig to create client config.
-	clientConfig, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", cfg.GetKubeconfigPath())
 	if err != nil {
 		panic(err)
 	}
@@ -26,9 +28,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	operator := operator.New("crd-ns", kubeClient, crdClientset)
+	nsCRD := cfg.GetCRDNamespace()
+	operator := operator.New(types.GetDefaultCtx(), nsCRD, nsCRD, cfg.GetPodNamespace(), kubeClient, crdClientset)
 
-	go operator.Run(2)
+	go operator.Run(types.WorkerNum)
 
 	ch := make(chan bool, 1)
 	<-ch
